@@ -1,0 +1,59 @@
+{% load static %}
+<html>
+<head>
+    <title>Data</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+   <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />-->
+    <style>
+    @import url(https://fonts.googleapis.com/css?family=Roboto:400,300,100,500);
+    body{
+background: -webkit-linear-gradient(#8CA6DB, #B993D6);
+background: linear-gradient(#8CA6DB, #B993D6);
+margin: 30px}
+    table {
+font-family: roboto;
+font-size: 14px;
+border-collapse: collapse;
+border-radius: 20px;
+box-shadow: 0 0 0 10px #5A009D;
+color: #452F21;
+margin: auto;
+}
+    th {
+padding: 10px 8px;
+background: white;
+text-align: center;
+}
+    table th:first-child {
+border-top-left-radius: 20px;
+}
+    table th:last-child {
+border-top-right-radius: 20px;
+}
+    td {
+border-top: 10px solid #5A009D;
+padding: 8px;
+background: white;
+text-align: center;
+}
+    table td:first-child {
+border-bottom-left-radius: 20px;
+}
+    table td:last-child {
+border-bottom-right-radius: 20px;
+}
+</style>
+</head>
+<body>
+<div class="content container" style="display: table-cell; width: 100%;height:100%;">
+    <div class="col-md-8">
+        {% block content %} {% endblock %}
+        {% block footer %} {% endblock %}
+    </div>
+</div>
+{% block js %}
+<script src="http://code.jquery.com/jquery-2.0.2.min.js"></script>
+{% endblock %}
+{% block extrajs %} {% endblock %}
+</body>
+</html>

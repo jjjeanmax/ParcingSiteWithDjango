@@ -1,0 +1,9 @@
+{% extends 'statement/base.html' %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+   <div class="table" style="text-align: center;">
+       <div style="width: 1600px; margin: 0 auto;"></div>
+        {% render_table table %}
+    </div>
+{% endblock %}

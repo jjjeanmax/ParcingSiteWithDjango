@@ -1,10 +1,23 @@
 from django.contrib import admin
 
-from .models import Rates
+from .models import *
+
+
+@admin.register(DataSave)
+class AdminData(admin.ModelAdmin):
+    list_display = ['name_exchange_office', 'rate_given_exchange', 'rate_received_exchange',
+                    'reserve', 'reviews', 'total_exchanger_given', 'total_exchanger_received',
+                    'sum_reserve_given', 'sum_reserve_received']
 
 
 @admin.register(Rates)
 class AdminRates(admin.ModelAdmin):
-    list_display = ['id_given_currency', 'id_received_currency', 'rate_given_exchange', 'rate_received_exchange',
-                    'received_currency_reserve', 'reviews', 'minimum_exchange_amount', 'maximum_exchange_amount',
-                    'city', 'exchanges']
+    list_display = ("rate_given_exchange", "rate_received_exchange", "reviews", "exchanges")
+
+    def exchanges(self, obj):
+        return "\n".join([a.name_exchange_office for a in obj.exchanges_set.all()])
+
+
+@admin.register(Exchanges)
+class AdminExchanges(admin.ModelAdmin):
+    list_display = ("id_exchange_office", "name_exchange_office", "WMBL", "reserve")
