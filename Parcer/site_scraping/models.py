@@ -59,4 +59,3 @@ class DataSave(models.Model):
     class Meta:
         verbose_name = "Нужные Данных"
         verbose_name_plural = "Нужные Данных"
-
