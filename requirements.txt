@@ -12,6 +12,7 @@ Django==3.2.10
 django-celery-beat==2.2.1
 django-redis==5.1.0
 django-split-settings==1.0.1
+django-tables2==2.4.1
 django-timezone-field==4.2.1
 kombu==5.2.2
 prompt-toolkit==3.0.24
