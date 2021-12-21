@@ -1,99 +1,121 @@
-# scraping/tasks.py
-# скрапинг
-
 import json
+import os
 
 from celery import shared_task
+from django.db.models import Sum, FloatField, F, Count
+from django.db.models.functions import Cast
 
-from .models import Exchanges, Rates
+from .models import Exchanges, Rates, DataSave
 
 from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
 
-url = 'http://api.bestchange.ru/info.zip'
+api = 'http://api.bestchange.ru/info.zip'
 extract_to = "code"
+
 json_list = ''
-STATUS_FILE_PATH = "code/bm_rates.dat"
+RATES_FILE_PATH = "code/bm_rates.dat"
+Exchanges_FILE_PATH = "code/bm_exch.dat"
 
 
 @shared_task
-def download_and_unzip(url=url, extract_to=extract_to):
-    http_response = urlopen(url)
-    zipfile = ZipFile(BytesIO(http_response.read()))
-    zipfile.extractall(path=extract_to)
-
-
-@shared_task
-def read_status():
-    fh = open(STATUS_FILE_PATH)
-    status_raw = fh.read()
-    pattern = [line.strip() for line in status_raw.split("\n")]
-    pairs = [line.split(";", 1) for line in pattern if line != '']
-    with open('code/rates.json', 'w', encoding='utf-8') as f:
-        json.dump(pairs, f, indent=4)
-
-
-@shared_task(serializer='json')
-def save_function():
-    article_list = []
-    with open('code/rates.json', 'r') as fp:
-        data = json.load(fp)
-        for i in range(len(data)):
-            id_given_currency = data[i][0]
-            l_data = data[i][1].split(';')
-            id_received_currency = l_data[0]
-            rate_given_exchange = l_data[1]
-            rate_received_exchange = l_data[2]
-            received_currency_reserve = l_data[3]
-            reviews = l_data[4]
-            minimum_exchange_amount = l_data[6]
-            maximum_exchange_amount = l_data[7]
-            city = l_data[8]
-            exchanges = l_data[9]
+def download_and_unzip(url=api, extract_to=extract_to):
     try:
-        article = {
-            'ID отдаваемой валюты': id_given_currency,
-            'ID получаемой валюты': id_received_currency,
-            'Курс отдаю': rate_given_exchange,
-            'Курс получаю': rate_received_exchange,
-            'Резерв получаемой валюты': received_currency_reserve,
-            'Отзывы': reviews,
-            'Минимальная сумма обмена': minimum_exchange_amount,
-            'Максимальная сумма обмена': maximum_exchange_amount,
-            'город': city,
-            'ID обменного пункта': exchanges
+        http_response = urlopen(url)
+        zipfile = ZipFile(BytesIO(http_response.read()))
+        zipfile.extractall(path=extract_to)
+        entries = os.listdir(extract_to)
+        for entry in entries:
+            if entry.endswith(".dat"):
+                file_path = f"{extract_to}/{entry}"
+                fh = open(file_path, encoding="ISO-8859-1")
+                status_raw = fh.read()
+                pattern = [line.strip() for line in status_raw.split("\n")]
+                pairs = [line.split(";", 1) for line in pattern if line != '']
+                with open(f'{file_path}.json', 'w', encoding='utf-8') as f:
+                    json.dump(pairs, f, indent=4)
+    except OSError:
+        pass
 
-        }
-        # добавляем "article_list" с каждым объектом "article"
-        article_list.append(article)
-        print('Finished scraping the articles')
 
+@shared_task
+def scrap_exchanges():
+    try:
+        with open('code/bm_exch.dat.json', 'r', ) as ex:
+            data_exh = json.load(ex)
+            for item in data_exh:
+                Exchanges.objects.update_or_create(id_exchange_office=item[0],
+                                                   name_exchange_office=item[1].split(";")[0],
+                                                   WMBL=item[1].split(";")[2],
+                                                   reserve=item[1].split(";")[3]
+                                                   )
     except Exception as e:
-        print('The scraping job failed. See exception:')
+        print("exchanges failed")
+        print(e)
+        pass
+
+
+@shared_task
+def get_exchanges_current():
+    scrap_exchanges.delay()
+
+
+@shared_task
+def scrap_rates():
+    try:
+        with open('code/bm_rates.dat.json', 'r', ) as rt:
+            data_rt = json.load(rt)
+            for item in data_rt:
+                exchanges = Exchanges.objects.filter(id_exchange_office=item[1].split(';')[1]).first()
+                Rates.objects.update_or_create(rate_given_exchange=item[1].split(';')[2],
+                                               rate_received_exchange=item[1].split(';')[3],
+                                               reviews=item[1].split(';')[5],
+                                               exchanges=exchanges
+                                               )
+    except Exception as e:
+        print("rates failed")
         print(e)
 
-    new_count = 0
 
-    for article in article_list:
-        try:
-            rates = Rates(
-                rate_given_exchange=article['Курс отдаю'],
-                rate_received_exchange=article['Курс отдаю'],
-                received_currency_reserve=article['Курс получаю'],
-                reviews=article['Отзывы'],
-                id_given_currency=article['ID отдаваемой валюты'],
-                id_received_currency=article['ID получаемой валюты'],
-                minimum_exchange_amount=article['Минимальная сумма обмена'],
-                maximum_exchange_amount=article['Максимальная сумма обмена'],
-                city=article['город'],
-                exchanges=article['ID обменного пункта'],
-            )
-            rates.save()
-            new_count += 1
-        except Exception as e:
-            print('failed at latest_article is none')
-            print(e)
-            break
+@shared_task
+def get_rate_current():
+    scrap_rates.delay()
 
-    return print('finished')
+
+@shared_task
+def get_queryset():
+    q = Exchanges.objects.values("name_exchange_office").annotate(dcount=Count('name_exchange_office')).order_by()
+    for i in range(len(q)):
+        print(q[i])
+    try:
+
+        qs = Rates.objects.values("rate_given_exchange", "rate_received_exchange", "reviews",
+                                  NameExchangeOffice=F('exchanges__name_exchange_office'),
+                                  Reserve=F("exchanges__reserve"),
+                                  TotalExchangerGiven=Count(F('exchanges__name_exchange_office')),
+                                  SumReserveGiven=Sum((Cast('exchanges__reserve', output_field=FloatField())))
+                                  ).order_by()
+        for data_dict in qs:
+            DataSave.objects.update_or_create(name_exchange_office=data_dict['NameExchangeOffice'],
+                                              reserve=data_dict['Reserve'],
+                                              rate_given_exchange=data_dict['rate_given_exchange'],
+                                              rate_received_exchange=data_dict['rate_received_exchange'],
+                                              reviews=data_dict['reviews'],
+                                              total_exchanger_given=data_dict['TotalExchangerGiven'],
+                                              total_exchanger_received=data_dict['TotalExchangerGiven'],
+                                              sum_reserve_given=data_dict['SumReserveGiven'],
+                                              sum_reserve_received=(data_dict['SumReserveGiven']),
+
+                                              )
+        print("save")
+
+    except Exception as e:
+        print("dataaa failed")
+        print(e)
+        pass
+
+
+@shared_task
+def get_data():
+    get_queryset.delay()

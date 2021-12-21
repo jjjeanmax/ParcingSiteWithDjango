@@ -16,16 +16,27 @@ app.conf.beat_schedule = {
         # Каждую 15 секунд
         'schedule': 15,
     },
-    # 'read_status': {
-    #     'task': 'site_scraping.tasks.read_status',
-    #     # Каждую 15 секунд
-    #     'schedule': 15,
-    # },
-    #
-    'save_function': {
-        'task': 'site_scraping.tasks.save_function',
-        # Каждую 20 секунд
+    'get_exchanges_current': {
+        'task': 'site_scraping.tasks.get_exchanges_current',
+        # Каждую 15 секунд
         'schedule': 20,
+    },
+    'get_rate_current': {
+        'task': 'site_scraping.tasks.get_rate_current',
+        # Каждую 15 секунд
+        'schedule': 20,
+    },
+
+    'get_data': {
+        'task': 'site_scraping.tasks.get_data',
+        # Каждую 20 секунд
+        'schedule': 15,
+    },
+
+    'scrap_rates': {
+        'task': 'site_scraping.tasks.scrap_rates',
+        # Каждую 20 секунд
+        'schedule': 12,
     },
 
 }
