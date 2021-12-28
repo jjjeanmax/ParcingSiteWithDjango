@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_tables2',
     'rest_framework',
+    'drf_yasg',
 
     'site_scraping',
 ]
@@ -126,3 +127,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 100
 }
+
+API = get_secret("API")

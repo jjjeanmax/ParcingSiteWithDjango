@@ -24,4 +24,3 @@ class ExchangesTable(tables.Table):
         model = Exchanges
         template_name = "django_tables2/bootstrap.html"
         exclude = ("id", "WMBL",)
-

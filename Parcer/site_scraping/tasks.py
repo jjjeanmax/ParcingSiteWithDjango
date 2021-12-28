@@ -2,8 +2,10 @@ import json
 import os
 
 from celery import shared_task
-from django.db.models import Sum, FloatField, F, Count
+from django.db.models import Sum, FloatField, Count, F
 from django.db.models.functions import Cast
+
+from Parcer.settings.base import API
 
 from .models import Exchanges, Rates, DataSave
 
@@ -11,16 +13,12 @@ from urllib.request import urlopen
 from io import BytesIO
 from zipfile import ZipFile
 
-api = 'http://api.bestchange.ru/info.zip'
+# TODO: use redis caches instated of this directory
 extract_to = "code"
-
-json_list = ''
-RATES_FILE_PATH = "code/bm_rates.dat"
-Exchanges_FILE_PATH = "code/bm_exch.dat"
 
 
 @shared_task
-def download_and_unzip(url=api, extract_to=extract_to):
+def download_and_unzip(url=API, extract_to=extract_to):
     try:
         http_response = urlopen(url)
         zipfile = ZipFile(BytesIO(http_response.read()))
@@ -85,28 +83,25 @@ def get_rate_current():
 
 @shared_task
 def get_queryset():
-    q = Exchanges.objects.values("name_exchange_office").annotate(dcount=Count('name_exchange_office')).order_by()
-    for i in range(len(q)):
-        print(q[i])
+    qs = Exchanges.objects.values('name_exchange_office').annotate(dcount=Count('name_exchange_office'),
+                                                                   dsum=Sum(Cast('reserve',
+                                                                                 output_field=FloatField()))).order_by()
+    print(qs)
+    q = Rates.objects.values("exchanges__name_exchange_office",
+                             "rate_received_exchange",
+                             "rate_given_exchange",
+                             "reviews", "exchanges__reserve").annotate(dcount=Count('exchanges__name_exchange_office'),
+                                                                       dsum=Sum(Cast('exchanges__reserve',
+                                                                                     output_field=FloatField())))
+
     try:
-
-        qs = Rates.objects.values("rate_given_exchange", "rate_received_exchange", "reviews",
-                                  NameExchangeOffice=F('exchanges__name_exchange_office'),
-                                  Reserve=F("exchanges__reserve"),
-                                  TotalExchangerGiven=Count(F('exchanges__name_exchange_office')),
-                                  SumReserveGiven=Sum((Cast('exchanges__reserve', output_field=FloatField())))
-                                  ).order_by()
-        for data_dict in qs:
-            DataSave.objects.update_or_create(name_exchange_office=data_dict['NameExchangeOffice'],
-                                              reserve=data_dict['Reserve'],
+        for data_dict in q:
+            DataSave.objects.update_or_create(name_exchange_office=data_dict['exchanges__name_exchange_office'],
+                                              reserve=data_dict['exchanges__reserve'],
                                               rate_given_exchange=data_dict['rate_given_exchange'],
-                                              rate_received_exchange=data_dict['rate_received_exchange'],
                                               reviews=data_dict['reviews'],
-                                              total_exchanger_given=data_dict['TotalExchangerGiven'],
-                                              total_exchanger_received=data_dict['TotalExchangerGiven'],
-                                              sum_reserve_given=data_dict['SumReserveGiven'],
-                                              sum_reserve_received=(data_dict['SumReserveGiven']),
-
+                                              total_exchanger=data_dict['dcount'],
+                                              sum_reserve=data_dict['dsum'],
                                               )
         print("save")
 

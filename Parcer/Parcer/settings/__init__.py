@@ -5,5 +5,6 @@ include(
     'database.py',
     'caches.py',
     'celery.py',
+    'api_docs.py',
 
 )

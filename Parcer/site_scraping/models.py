@@ -33,11 +33,6 @@ class Rates(models.Model):
         unique_together = ['rate_given_exchange', 'rate_received_exchange', 'reviews', 'exchanges']
 
 
-class ExchangesRates(models.Model):
-    rates = models.ForeignKey(Rates, on_delete=models.CASCADE, verbose_name="Kурс обмена")
-    exchanges = models.ForeignKey(Exchanges, on_delete=models.CASCADE, verbose_name="Oбменных пунктов")
-
-
 class DataSave(models.Model):
     name_exchange_office = models.CharField(max_length=100,
                                             verbose_name=" Обменник", null=False, blank=False)
@@ -45,13 +40,11 @@ class DataSave(models.Model):
     rate_received_exchange = models.CharField(max_length=100, verbose_name="Курс получаю", null=False)
     reserve = models.CharField(verbose_name="резерв", max_length=100, null=False, blank=False)
     reviews = models.CharField(max_length=255, verbose_name="Отзывы", null=False, blank=False)
-    total_exchanger_given = models.CharField(max_length=100, verbose_name=" количество обменников отдаю", null=False, blank=False,
+    total_exchanger = models.CharField(max_length=100, verbose_name=" количество обменников ", null=False, blank=False,
                                                 default=0)
-    total_exchanger_received = models.CharField(max_length=100, verbose_name=" количество обменников получаю", null=False,
-                                                   blank=False, default=0)
-    sum_reserve_given = models.CharField(max_length=100, verbose_name="суммарный резерв со всех обменников отдаю", null=False,
+
+    sum_reserve = models.CharField(max_length=100, verbose_name="суммарный резерв со всех обменников ", null=False,
                                             blank=False, default=0)
-    sum_reserve_received = models.CharField(max_length=100, verbose_name="суммарный резерв со всех обменников получаю")
 
     def __str__(self):
         return self.name_exchange_office
@@ -59,4 +52,3 @@ class DataSave(models.Model):
     class Meta:
         verbose_name = "Нужные Данных"
         verbose_name_plural = "Нужные Данных"
-
