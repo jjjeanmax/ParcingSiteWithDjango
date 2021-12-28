@@ -35,10 +35,7 @@ CACHES = {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     },
-    # кэш для хранения данных устройств
-    # TODO: Подумать над возвращением префикса и версионности
-    #  (синхронизировать redis настройки в async mqtt logger и django)
-    #  чтоб использовать полный функционал django-redis
+    # кэш для хранения данных 
     'save': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': f'redis://{SAVE_HOST}:{SAVE_PORT}/{SAVE_CACHE_DB}',
