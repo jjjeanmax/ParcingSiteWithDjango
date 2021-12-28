@@ -7,7 +7,7 @@ from django.db.models.functions import Cast
 
 from Parcer.settings.base import API
 
-from .models import Exchanges, Rates, DataSave
+from .models import Exchanges, Rates, DataSave, Currencies
 
 from urllib.request import urlopen
 from io import BytesIO
@@ -60,16 +60,48 @@ def get_exchanges_current():
 
 
 @shared_task
+def scrap_currencies():
+    try:
+        with open('code/bm_cy.dat.json', 'r', encoding="utf-8") as ex:
+            data_cur = json.load(ex)
+            for item in data_cur:
+                Currencies.objects.update_or_create(id_currency=item[0],
+                                                    name_currency=item[1].split(";")[1],
+                                                    )
+    except Exception as e:
+        print("currencies failed")
+        print(e)
+        pass
+
+
+@shared_task
+def get_currencies_current():
+    scrap_currencies.delay()
+
+
+@shared_task
 def scrap_rates():
     try:
-        with open('code/bm_rates.dat.json', 'r', ) as rt:
+        with open('code/bm_rates.dat.json', 'r', encoding="utf-8") as rt:
             data_rt = json.load(rt)
             for item in data_rt:
                 exchanges = Exchanges.objects.filter(id_exchange_office=item[1].split(';')[1]).first()
+                id_name_receive = Currencies.objects.filter(id_currency=item[1].split(';')[0]).first()
+                id_name_given = Currencies.objects.filter(id_currency=item[0]).first()
+
+                name_receive = Currencies.objects.values('name_currency', 'id_currency').filter(
+                    id_currency=item[1].split(';')[0]).first()
+                name_given = Currencies.objects.values('name_currency', 'id_currency').filter(
+                    id_currency=item[0]).first()
+
                 Rates.objects.update_or_create(rate_given_exchange=item[1].split(';')[2],
                                                rate_received_exchange=item[1].split(';')[3],
                                                reviews=item[1].split(';')[5],
-                                               exchanges=exchanges
+                                               exchanges=exchanges,
+                                               name_rate_given_exchange=name_given['name_currency'],
+                                               name_rate_received_exchange=name_receive['name_currency'],
+                                               id_rate_received_exchange=id_name_receive,
+                                               id_rate_given_exchange=id_name_given
                                                )
     except Exception as e:
         print("rates failed")
@@ -83,23 +115,24 @@ def get_rate_current():
 
 @shared_task
 def get_queryset():
-    qs = Exchanges.objects.values('name_exchange_office').annotate(dcount=Count('name_exchange_office'),
-                                                                   dsum=Sum(Cast('reserve',
-                                                                                 output_field=FloatField()))).order_by()
-    print(qs)
     q = Rates.objects.values("exchanges__name_exchange_office",
                              "rate_received_exchange",
                              "rate_given_exchange",
-                             "reviews", "exchanges__reserve").annotate(dcount=Count('exchanges__name_exchange_office'),
-                                                                       dsum=Sum(Cast('exchanges__reserve',
-                                                                                     output_field=FloatField())))
+                             "reviews", "exchanges__reserve",
+                             "name_rate_received_exchange",
+                             "name_rate_given_exchange").annotate(dcount=Count('exchanges__name_exchange_office'),
+                                                                  dsum=Sum(Cast('exchanges__reserve',
+                                                                                output_field=FloatField())))
 
     try:
         for data_dict in q:
             DataSave.objects.update_or_create(name_exchange_office=data_dict['exchanges__name_exchange_office'],
                                               reserve=data_dict['exchanges__reserve'],
                                               rate_given_exchange=data_dict['rate_given_exchange'],
+                                              rate_received_exchange=data_dict['rate_received_exchange'],
                                               reviews=data_dict['reviews'],
+                                              name_rate_received_exchange=data_dict['name_rate_received_exchange'],
+                                              name_rate_given_exchange=data_dict['name_rate_given_exchange'],
                                               total_exchanger=data_dict['dcount'],
                                               sum_reserve=data_dict['dsum'],
                                               )

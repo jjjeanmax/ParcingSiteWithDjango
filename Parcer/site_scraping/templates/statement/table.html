@@ -34,16 +34,19 @@
     <thead> 
 
       <tr> 
+          <th>Обменник</th>
 
-        <th>Обменник</th>
+          <th>Отдаваемой валюты</th>
 
-        <th>Курс отдаю</th>
+          <th>Получаемой валюты</th>
 
-        <th>Курс получаю</th>
+          <th>Курс отдаю</th>
 
-        <th>Резерв</th>
+          <th>Курс получаю</th>
 
-        <th>Отзывы</th>
+          <th>Резерв</th>
+
+          <th>Отзывы</th>
 
 
       </tr> 
@@ -72,19 +75,21 @@
 
     <!-- jinja2 Technique -->
       <tr>
+          <td>{{i.exchanges__name_exchange_office}}</td>
 
-        <td>{{i.exchanges__name_exchange_office}}</td>
+          <td>{{i.name_rate_given_exchange}}</td>
 
-        <td>{{i.rate_given_exchange}}</td>
+          <td>{{i.name_rate_received_exchange}}</td>
 
-        <td>{{i.rate_received_exchange}}</td>
+          <td>{{i.rate_given_exchange}}</td>
 
-        <td>{{i.exchanges__reserve}}</td>
+          <td>{{i.rate_received_exchange}}</td>
 
-        <td>{{i.reviews}}</td>
+          <td>{{i.exchanges__reserve}}</td>
 
+          <td>{{i.reviews}}</td>
 
-      </tr> 
+      </tr>
 
     {% endfor %}
 
