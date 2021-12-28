@@ -1,4 +1,5 @@
 {
+  "API":"link",
   "PROTOCOL": "",
   "DOMAIN": "",
   "DEBUG": true,
@@ -9,5 +10,19 @@
     "NAME": "",
     "USER": "",
     "PASSWORD": ""
-  }
+  },
+      "REDIS": {
+        "HOST": "",
+        "PORT": "",
+        "CACHE_DB": ""
+    },
+      "SAVE": {
+        "HOST": "",
+        "PORT": "",
+        "CACHE_DB": "",
+        "TTL": 3600
+    },
+    "CELERY": {
+        "BROKER_URL": ""
+    }
 }

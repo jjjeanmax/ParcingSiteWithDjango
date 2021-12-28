@@ -6,8 +6,8 @@ from .models import *
 @admin.register(DataSave)
 class AdminData(admin.ModelAdmin):
     list_display = ['name_exchange_office', 'rate_given_exchange', 'rate_received_exchange',
-                    'reserve', 'reviews', 'total_exchanger_given', 'total_exchanger_received',
-                    'sum_reserve_given', 'sum_reserve_received']
+                    'reserve', 'reviews', 'total_exchanger',
+                    'sum_reserve', ]
 
 
 @admin.register(Rates)

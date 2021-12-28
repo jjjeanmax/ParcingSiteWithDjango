@@ -221,3 +221,5 @@ db.sqlite3
 public.pem
 
 deploy.sh
+code/
+/Parcer/site_scraping/helpers.py

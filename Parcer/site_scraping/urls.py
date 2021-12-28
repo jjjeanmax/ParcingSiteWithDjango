@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     path('', views.menu_view, name='index'),
     # path('data/', views.data_view, name='da'),
-    # path('exchanges/', views.exhanges_view, name='exchange'),
+    path('api/', views.GetTotalOfficeView.as_view(), name='exchange'),
 
     re_path('^data/?$', views.DataView.as_view(), name="data"),
 

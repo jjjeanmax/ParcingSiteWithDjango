@@ -1,0 +1,121 @@
+<!-- Write HTML code here -->
+<!DOCTYPE html>
+
+<html lang="en"> 
+
+<head> 
+
+  <title>TableView - DATA</title>
+
+  <meta charset="utf-8"> 
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"> 
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"> 
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script> 
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script> 
+
+</head> 
+
+<body> 
+
+  
+
+<div class="container"> 
+
+  <h2 class="text-center"><u>Table Data</u></h2><br>
+
+  <table class="table table-dark table-striped"> 
+
+    <thead> 
+
+      <tr> 
+
+        <th>Обменник</th>
+
+        <th>Курс отдаю</th>
+
+        <th>Курс получаю</th>
+
+        <th>Резерв</th>
+
+        <th>Отзывы</th>
+
+
+      </tr> 
+
+    </thead>
+    <tfoot>
+                {% if d %}
+        <tr>
+            <th>Количество обменников</th>
+                <td>{{total}}</td>
+        </tr>
+
+        <tr>
+            <th>Суммарный резерв всех обменников </th>
+                <td>{{summ}}</td>
+        </tr>
+
+    </tfoot>
+                {% endif %}
+
+
+    <tbody>
+    {% if d %}
+
+    {% for i in d %}
+
+    <!-- jinja2 Technique -->
+      <tr>
+
+        <td>{{i.exchanges__name_exchange_office}}</td>
+
+        <td>{{i.rate_given_exchange}}</td>
+
+        <td>{{i.rate_received_exchange}}</td>
+
+        <td>{{i.exchanges__reserve}}</td>
+
+        <td>{{i.reviews}}</td>
+
+
+      </tr> 
+
+    {% endfor %}
+
+    <div class="pagination">
+    <span class="step-links">
+        {% if d.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ d.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ d.number }} of {{ d.paginator.num_pages }}.
+        </span>
+
+        {% if d.has_next %}
+            <a href="?page={{ d.next_page_number }}">next</a>
+            <a href="?page={{ d.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+    {% endif %} 
+
+    </tbody> 
+
+  </table> 
+
+</div> 
+
+  
+
+</body> 
+
+</html> 
