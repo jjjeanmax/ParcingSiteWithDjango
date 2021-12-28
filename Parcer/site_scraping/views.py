@@ -57,9 +57,7 @@ class GetTotalOfficeView(APIView):
                                  , "rate_received_exchange",
                                  "rate_given_exchange",
                                  "reviews",
-                                 "exchanges__reserve", ).annotate(dcount=Count('exchanges__name_exchange_office'),
-                                                                  dsum=Sum(Cast('exchanges__reserve',
-                                                                                output_field=FloatField())))
+                                 "exchanges__reserve", "name_rate_received_exchange", "name_rate_given_exchange")
         data = list(q)
         paginator = Paginator(data, 13)
         page = request.GET.get('page')
