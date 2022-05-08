@@ -1,64 +1,59 @@
 # ParcingSiteWithDjango
 
-Парсинг web сайт bestchange
+Web site parsing bestchange
 
-> Bestchange - криптовалютный сайт, который каждые 10-20с обновляется.
-> 
-> API Bestchange - Апи , который содержит некие данные из сайта Bestchange 
-> т.е данные из этого апи обновляются каждые 10-20с.
-> 
-> Задача: извлечь из API Bestchange нужные данные и выгрузить в таблицу
+> Bestchange - a cryptocurrency site that is updated every 10-20s.
+>
+> Bestchange API - An API that contains some data from the Bestchange website
+> ie the data from this api is updated every 10-20s.
+>
+> Task: extract the necessary data from the Bestchange API and upload it to a table
 
-## Требования
+## Requirements
 * Python 3+;
 * PostgreSQL 11+;
 * Redis;
-* Celery
-* PIP модули (см. requirements.txt).
+* celery
+* PIP modules (see requirements.txt).
 
-## Конфигурационный файл
-При развертывание скопировать файл `configs.json.example` в файл `configs.json` в директории 
+## Configuration file
+When deploying, copy the `configs.json.example` file to the `configs.json` file in the directory
 `Parcer/Parcer/settings/`.
 
-Пример `configs.json` файла `Parcer/Parcer/settings/configs.json.example`.
+Example `configs.json` file `Parcer/Parcer/settings/configs.json.example`.
 
-## Старт
+## Start
 
-1. Создать и активировать виртуальное окружение:
+1. Create and activate virtual environment:
 
     `python -m venv venv`
 
-
-2. Установить пакеты:
+2. Install packages:
 
     `pip install -r requirements.txt`
 
-
-3. Выполнить команду для выполнения миграций :
+3. Run migrations:
 
     `python manage.py migrate`
 
-
-4. Создать статичные файлы: 
-
-    `python manage.py collectstatic`
-
-
-5. Создать суперпользователя:
+4. Create superuser:
 
     `python manage.py createsuperuser`
 
+4. Create config file:
 
-6. Запустить сервер:
+    `configs.json`
 
+6. Start django server:
+    
     `$ python manage.py runserver`
 
 
-7. Запустить celery:
+7. Run celery:
 
     `$ celery -A Parcer worker -l info`
 
 
-8. Запустить celery beat:
+8. Run celery beat:
 
     `$ celery -A Parcer beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler`
